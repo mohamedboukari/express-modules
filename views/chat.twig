@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Chat
+	</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			margin: 0 auto;
+			padding: 15px;
+		}
+
+		#messages {
+			border: 1px solid #ccc;
+			padding: 10px;
+			border-radius: 5px;
+			height: 300px;
+			overflow-y: scroll;
+			margin-bottom: 10px;
+
+		}
+
+		#message-input {
+			flex: 1 1 0%;
+			padding: 10px;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+		}
+
+		.chat-input {
+			display: flex;
+			gap: 10px;
+		}
+
+		#send-btn {
+			border-radius: 4px;
+			border: none;
+			background: #00ff00;
+			padding: 5px 20px;
+			color: black;
+			cursor: pointer;
+		}
+
+		.chatItem {
+			display: flex;
+			justify-content: space-between;
+			margin-top: 10px;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="chat-container">
+		<h2>Chat</h2>
+		<div id="messages"></div>
+		<div class="chat-input">
+			<input id="message-input" type="text" placeholder="Type a message..." />
+			<button id="send-btn">Send</button>
+		</div>
+
+	</div>
+
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="https://momentjs.com/downloads/moment.min.js"></script>
+
+	<script>
+		const socket = io();
+		const appendMessage = (msg) => {
+			const messageElement = document.createElement('div');
+			messageElement.innerHTML =
+				`<div class="chatItem">
+					<div>
+						${msg.content}
+					</div>
+					<div>
+						${moment(new Date(msg.createdAt)).format('ddd-MMM-YYYY h:mm:ss a')}
+					</div>
+				</div>`
+			messagesDiv.appendChild(messageElement);
+			messagesDiv.scrollTop = messagesDiv.scrollHeight;
+		};
+
+		const messageInput = document.getElementById('message-input');
+		const messagesDiv = document.getElementById('messages');
+		const sendBtn = document.getElementById('send-btn');
+
+		sendBtn.addEventListener('click', () => {
+			const message = messageInput.value;
+
+			if (message.trim()) {
+				socket.emit('chat message', message);
+				messageInput.value = '';
+			}
+		});
+		socket.on('previous messages', (messages) => {
+			messages.forEach((message) => {
+				appendMessage(message);
+			});
+		});
+		socket.on('chat message', (msg) => {
+			appendMessage(msg);
+		});
+
+	</script>
+</body>
+
+</html>
